@@ -1,0 +1,172 @@
+{
+  "topics": [
+    {
+      "id": "cash_flow",
+      "name": "Statement of Cash Flows",
+      "topic_keywords": ["cash flow", "cash flows", "statement of cash flows", "scf", "operating activities", "investing activities", "financing activities"],
+      "items": [
+        {
+          "id": "cash_flow_classes",
+          "label": "Cash receipts and payments are classified as operating, investing, or financing activities.",
+          "rule_reference": "ASC 230",
+          "required": true,
+          "keywords": ["operating activities", "investing activities", "financing activities"]
+        },
+        {
+          "id": "cash_reconciliation",
+          "label": "Beginning and ending cash, cash equivalents, and restricted cash reconcile to the statement of financial position.",
+          "rule_reference": "ASC 230",
+          "required": true,
+          "keywords": ["beginning cash", "ending cash", "cash and cash equivalents", "restricted cash", "reconcile"]
+        },
+        {
+          "id": "noncash_activities",
+          "label": "Material noncash investing and financing activities are disclosed separately.",
+          "rule_reference": "ASC 230",
+          "required": true,
+          "keywords": ["noncash", "non-cash", "investing and financing activities"]
+        },
+        {
+          "id": "interest_taxes",
+          "label": "Cash paid for interest and income taxes is disclosed when applicable.",
+          "rule_reference": "ASC 230",
+          "required": true,
+          "keywords": ["cash paid for interest", "cash paid for income taxes", "interest paid", "taxes paid"]
+        }
+      ]
+    },
+    {
+      "id": "revenue",
+      "name": "Revenue Recognition",
+      "topic_keywords": ["revenue", "asc 606", "contract with customer", "performance obligation", "deferred revenue"],
+      "items": [
+        {
+          "id": "revenue_policy",
+          "label": "Revenue recognition accounting policy and timing of recognition are described.",
+          "rule_reference": "ASC 606",
+          "required": true,
+          "keywords": ["revenue recognition", "recognize revenue", "recognized when", "accounting policy"]
+        },
+        {
+          "id": "performance_obligations",
+          "label": "Performance obligations and satisfaction timing are disclosed.",
+          "rule_reference": "ASC 606",
+          "required": true,
+          "keywords": ["performance obligation", "satisfied over time", "satisfied at a point in time"]
+        },
+        {
+          "id": "disaggregation",
+          "label": "Revenue is disaggregated in a way that depicts how economic factors affect revenue.",
+          "rule_reference": "ASC 606",
+          "required": true,
+          "keywords": ["disaggregated revenue", "disaggregation", "revenue by"]
+        },
+        {
+          "id": "contract_balances",
+          "label": "Contract assets, contract liabilities, and significant balance changes are disclosed when applicable.",
+          "rule_reference": "ASC 606",
+          "required": true,
+          "keywords": ["contract asset", "contract liability", "deferred revenue", "contract balance"]
+        }
+      ]
+    },
+    {
+      "id": "leases",
+      "name": "Leases",
+      "topic_keywords": ["lease", "leases", "asc 842", "right-of-use", "rou", "lease liability"],
+      "items": [
+        {
+          "id": "lease_policy",
+          "label": "Lease accounting policy and significant judgments are disclosed.",
+          "rule_reference": "ASC 842",
+          "required": true,
+          "keywords": ["lease accounting", "lease policy", "significant judgment"]
+        },
+        {
+          "id": "rou_liability",
+          "label": "Right-of-use assets and lease liabilities are presented or disclosed.",
+          "rule_reference": "ASC 842",
+          "required": true,
+          "keywords": ["right-of-use asset", "rou asset", "lease liability"]
+        },
+        {
+          "id": "lease_cost",
+          "label": "Lease cost components are disclosed.",
+          "rule_reference": "ASC 842",
+          "required": true,
+          "keywords": ["lease cost", "operating lease cost", "finance lease cost", "variable lease cost"]
+        },
+        {
+          "id": "maturity_analysis",
+          "label": "Lease liability maturity analysis is disclosed.",
+          "rule_reference": "ASC 842",
+          "required": true,
+          "keywords": ["maturity analysis", "future lease payments", "undiscounted cash flows"]
+        }
+      ]
+    },
+    {
+      "id": "mdna",
+      "name": "MD&A",
+      "topic_keywords": ["md&a", "management discussion", "liquidity", "capital resources", "results of operations"],
+      "items": [
+        {
+          "id": "results_trends",
+          "label": "Material period-over-period changes and known trends are discussed.",
+          "rule_reference": "Regulation S-K",
+          "required": true,
+          "keywords": ["results of operations", "period-over-period", "known trends", "material change"]
+        },
+        {
+          "id": "liquidity_capital",
+          "label": "Liquidity and capital resources are discussed.",
+          "rule_reference": "Regulation S-K",
+          "required": true,
+          "keywords": ["liquidity", "capital resources", "cash requirements"]
+        },
+        {
+          "id": "critical_estimates",
+          "label": "Critical accounting estimates are discussed when material.",
+          "rule_reference": "Regulation S-K",
+          "required": true,
+          "keywords": ["critical accounting estimate", "estimate uncertainty", "significant estimate"]
+        }
+      ]
+    },
+    {
+      "id": "general_financial_statement",
+      "name": "General Financial Statement Disclosure",
+      "topic_keywords": ["disclosure", "disclosures", "footnote", "financial statements", "10-k", "10-q"],
+      "items": [
+        {
+          "id": "basis_presentation",
+          "label": "Basis of presentation and accounting framework are disclosed.",
+          "rule_reference": "Regulation S-X",
+          "required": true,
+          "keywords": ["basis of presentation", "generally accepted accounting principles", "gaap", "consolidated financial statements"]
+        },
+        {
+          "id": "significant_policies",
+          "label": "Significant accounting policies are disclosed.",
+          "rule_reference": "ASC 235",
+          "required": true,
+          "keywords": ["significant accounting policies", "accounting policies"]
+        },
+        {
+          "id": "estimates",
+          "label": "Use of estimates and significant judgments are disclosed.",
+          "rule_reference": "ASC 275",
+          "required": true,
+          "keywords": ["use of estimates", "significant estimates", "judgments"]
+        },
+        {
+          "id": "subsequent_events",
+          "label": "Subsequent events are evaluated and disclosed when applicable.",
+          "rule_reference": "ASC 855",
+          "required": true,
+          "keywords": ["subsequent events", "subsequent event"]
+        }
+      ]
+    }
+  ]
+}

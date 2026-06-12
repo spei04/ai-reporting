@@ -23,6 +23,7 @@ Give the assistant permanent reporting knowledge plus user/session-specific priv
   - recent session message context
 - Rule retrieval is gated by the selected reporting skill. Generic chat does not retrieve ASC/SEC context by default.
 - Skill-aware retrieval expands queries with workflow-specific hints, such as ASC 230 for SCF generation and Regulation S-X/S-K for filing drafts.
+- Disclosure completeness review uses uploaded session documents directly and can be supplemented by ASC/SEC retrieval for follow-up explanation.
 
 ## Design Rule
 
@@ -31,3 +32,5 @@ Shared ASC/SEC rules are available to every user. Uploaded company files are pri
 ## Vertical Agent Role
 
 The knowledge base is the L3 escape hatch in the reporting agent architecture. The permanent prompt and curated skill specs should stay compact; raw ASC/SEC and user documents are retrieved only when the routed workflow needs them.
+
+The disclosure completeness checker promotes the checklist itself into a deterministic L1/L2 primitive: the checklist definitions live in config, while uploaded documents remain L3 private session material.

@@ -22,6 +22,7 @@ Provide a simple ChatGPT-style reporting assistant interface for reporting teams
 - Generated artifact drawer for downloadable workbooks and evidence files.
 - Source citation cards can open a source details drawer without creating downloadable outputs for ordinary Q&A.
 - SCF source trace preview rows open an evidence drawer with output value, formula, source workbook cells, rule reference, and review status.
+- Disclosure completeness responses render checklist items in a table with status, disclosure item, rule, and note columns.
 
 ## Notes
 

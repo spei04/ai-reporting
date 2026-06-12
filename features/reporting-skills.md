@@ -33,6 +33,7 @@ The skills now follow a vertical-agent cache hierarchy:
 - If no skill matches, the model call receives no skill context.
 - Deterministic tools can bypass GPT when they need exact calculations or file generation.
 - Rule retrieval is skill-aware: the backend expands the retrieval query with workflow-specific accounting/SEC hints and a short preview of the selected skill spec.
+- Disclosure completeness requests bypass GPT and run the deterministic checklist engine when the user asks whether uploaded disclosures are included, missing, correct, or complete.
 
 ## L2 Skill Specs
 
@@ -54,3 +55,10 @@ The current curated specs are:
 ## Currently Deterministic
 
 - SCF generation is deterministic through `/api/generate` when a workbook is uploaded and the UI detects a cash-flow generation request.
+- Disclosure completeness review is deterministic through chat when uploaded disclosure text is available. It returns item-level statuses and a JSON review artifact.
+
+## Layering Impact
+
+- L1 now includes deterministic reporting primitives, not just prompt behavior. Disclosure completeness becomes a common operation the backend can execute reliably.
+- L2 still owns the workflow playbook: when to run the checker, what facts are needed, and how to interpret results.
+- L3 remains the raw substrate: uploaded disclosure documents, private session context, and shared ASC/SEC rule context.

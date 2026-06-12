@@ -120,7 +120,18 @@ SKILLS: tuple[ReportingSkill, ...] = (
             "Return a compact checklist with required disclosures, supporting data needed, likely rule references, "
             "and unresolved judgments."
         ),
-        keywords=("checklist", "disclosures required", "what disclosures", "required disclosure", "disclosure requirements"),
+        keywords=(
+            "checklist",
+            "disclosures required",
+            "what disclosures",
+            "required disclosure",
+            "disclosure requirements",
+            "correct disclosures",
+            "disclosures included",
+            "missing disclosures",
+            "disclosures missing",
+            "disclosure completeness",
+        ),
         required_when="The user asks what disclosures are required or what support should be prepared.",
     ),
     ReportingSkill(
@@ -167,6 +178,10 @@ class SkillRouter:
                 "filing" in text or "disclosure" in text or "footnote" in text
             ):
                 score += 2
+            if skill.id == "disclosure_checklist" and (" disclosure" in text or " disclosures" in text) and any(
+                term in text for term in (" correct", " included", " complete", " completeness", " missing")
+            ):
+                score += 3
             if score > best_score:
                 best_skill = skill
                 best_score = score

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -9,6 +10,7 @@ from .amortization import (
     missing_amortization_inputs,
     parse_amortization_terms,
 )
+from .disclosure import DisclosureChecklistEngine, is_disclosure_completeness_request
 from .evidence import classify_support_status
 from .file_context import summarize_upload
 from .knowledge import ReportingKnowledgeBase
@@ -40,12 +42,14 @@ class ReportingChatService:
         llm: ReportingLlmClient,
         skill_router: SkillRouter | None = None,
         skill_specs: SkillSpecStore | None = None,
+        disclosure_engine: DisclosureChecklistEngine | None = None,
     ):
         self.store = store
         self.knowledge = knowledge
         self.llm = llm
         self.skill_router = skill_router or SkillRouter()
         self.skill_specs = skill_specs or SkillSpecStore()
+        self.disclosure_engine = disclosure_engine or DisclosureChecklistEngine()
 
     def handle_message(
         self,
@@ -66,6 +70,14 @@ class ReportingChatService:
 
         skill_context = skill_route.skill.to_context() if skill_route.has_skill and skill_route.skill else None
         skill_spec = self.skill_specs.load(skill_route.skill.id) if skill_route.has_skill and skill_route.skill else None
+        if is_disclosure_completeness_request(message, skill_context.get("id") if skill_context else None):
+            return self._handle_disclosure_completeness(
+                resolved_session_id,
+                message,
+                stored_uploads,
+                skill_context,
+                skill_spec.to_context() if skill_spec else None,
+            )
         retrieval_query = self._rule_retrieval_query(message, skill_context, skill_spec.to_context() if skill_spec else None)
         rule_chunks = self.knowledge.retrieve(retrieval_query, limit=5) if self._should_retrieve_rule_context(skill_route) else []
         user_chunks = self.knowledge.retrieve_user(resolved_session_id, message, limit=5)
@@ -172,6 +184,99 @@ class ReportingChatService:
         recent = self.store.messages(session_id, limit=4)
         return any(is_amortization_request(str(item.get("content", ""))) for item in recent)
 
+    def _handle_disclosure_completeness(
+        self,
+        session_id: str,
+        message: str,
+        stored_uploads,
+        selected_skill: dict[str, str] | None,
+        selected_skill_spec: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        uploads = self.store.manifest(session_id).get("uploads", [])
+        review = self.disclosure_engine.review(message, uploads)
+        review_json = review.to_json()
+        artifact_dir = self.store.session_dir(session_id) / "artifacts"
+        artifact_dir.mkdir(parents=True, exist_ok=True)
+        artifact_path = artifact_dir / "disclosure_completeness_review.json"
+        artifact_path.write_text(json.dumps(review_json, indent=2, default=str))
+        self.store.record_generated_artifacts(
+            session_id,
+            {
+                "disclosure_completeness_review": str(artifact_path),
+            },
+        )
+        artifact = {
+            "title": "Disclosure completeness review",
+            "description": f"Checklist review for {review.topic_name}.",
+            "href": f"/data/sessions/{session_id}/artifacts/{artifact_path.name}",
+            "type": "json",
+        }
+        display = self._disclosure_display(review)
+        self.store.append_message(
+            session_id,
+            "assistant",
+            display["summary"],
+            metadata={
+                "display": display,
+                "provider": "deterministic-tool",
+                "model": "disclosure-completeness",
+                "used_live_model": False,
+                "selected_skill": selected_skill,
+                "selected_skill_spec": selected_skill_spec,
+                "disclosure_review": review_json,
+                "artifacts": [artifact],
+            },
+        )
+        payload = self._chat_payload(
+            session_id,
+            display,
+            stored_uploads,
+            provider="deterministic-tool",
+            model="disclosure-completeness",
+            selected_skill=selected_skill,
+        )
+        payload["artifacts"] = [artifact]
+        payload["disclosure_review"] = review_json
+        if selected_skill_spec:
+            payload["selected_skill_spec"] = {
+                "id": selected_skill_spec.get("id"),
+                "source": selected_skill_spec.get("source"),
+            }
+        return payload
+
+    def _disclosure_display(self, review) -> dict[str, Any]:
+        critical = [
+            item for item in review.findings
+            if item.status in {"missing", "incomplete", "needs_facts"}
+        ][:4]
+        if critical:
+            key_points = [
+                f"{item.status.replace('_', ' ').title()}: {item.label}"
+                for item in critical
+            ]
+        else:
+            key_points = ["No missing checklist items were detected in the uploaded text."]
+        return {
+            "summary": review.summary,
+            "key_points": key_points,
+            "rule_support": _disclosure_rule_support(review),
+            "next_step": "Review the checklist statuses and provide missing company facts before relying on completeness.",
+            "raw_answer": review.summary,
+            "checklist_items": [
+                {
+                    "item": item.label,
+                    "status": item.status.replace("_", " ").title(),
+                    "rule": item.rule_reference,
+                    "note": item.note,
+                    "evidence": item.evidence[:1],
+                }
+                for item in review.findings
+            ],
+            "support_status": "supported" if review.overall_status == "appears_complete" else "partially_supported",
+            "support_label": "Checklist reviewed",
+            "support_note": "This is a deterministic checklist review, not a legal or audit sign-off.",
+        }
+
     def _handle_amortization(self, session_id: str, message: str, stored_uploads) -> dict[str, Any]:
         terms = parse_amortization_terms(message, self.store.messages(session_id, limit=8))
         missing = missing_amortization_inputs(terms)
@@ -276,6 +381,7 @@ class ReportingChatService:
             "status": "answered",
             "session_id": session_id,
             "answer": display["summary"],
+            "raw_answer": display.get("raw_answer", display["summary"]),
             "display": display,
             "provider": provider,
             "model": model,
@@ -357,6 +463,20 @@ class ReportingChatService:
             "summary": upload.summary,
             "ingestion": upload.ingestion or {},
         }
+
+
+def _disclosure_rule_support(review) -> list[dict[str, str]]:
+    seen = set()
+    support = []
+    for item in review.findings:
+        citation = item.rule_reference
+        if not citation or citation in seen:
+            continue
+        seen.add(citation)
+        support.append({"citation": citation, "title": citation})
+        if len(support) >= 3:
+            break
+    return support
 
 
 def build_chat_service(root: Path) -> ReportingChatService:

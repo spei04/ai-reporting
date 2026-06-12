@@ -4,6 +4,7 @@ Use this skill when the user asks what disclosures are required, what support sh
 
 Workflow:
 - Identify the accounting topic, filing context, period, and transaction/fact pattern.
+- If the user asks whether uploaded disclosures are complete, use the deterministic disclosure completeness engine before asking the model to improvise.
 - Retrieve rule context for the topic.
 - Convert rule requirements into a practical reporting checklist.
 - Separate required disclosures, support needed, judgments, and open questions.
@@ -21,3 +22,4 @@ Common failure modes:
 - Returning generic disclosure theory instead of preparer actions.
 - Missing source support requirements.
 - Overstating requirements when facts are incomplete.
+- Claiming absolute completeness when the uploaded document or applicability facts are incomplete.

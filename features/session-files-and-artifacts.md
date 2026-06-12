@@ -18,6 +18,7 @@ Let users upload supporting files, preserve session context, and download genera
 - Uploaded files are summarized and indexed into private knowledge context.
 - Uploaded files return ingestion status: `indexed`, `partial`, or `failed`.
 - Generated artifacts are stored under the same session.
+- Disclosure completeness reviews are stored as generated JSON artifacts when the user asks whether uploaded disclosures are complete.
 - The file library exposes:
   - uploaded files
   - generated outputs
@@ -30,3 +31,4 @@ Let users upload supporting files, preserve session context, and download genera
 - SCF evidence JSON.
 - Mapping review JSON.
 - Normalized support JSON.
+- Disclosure completeness review JSON.

@@ -646,6 +646,10 @@ function renderStructuredAnswer(card, display) {
     answer.appendChild(tags);
   }
 
+  if (Array.isArray(display.checklist_items) && display.checklist_items.length) {
+    answer.appendChild(renderChecklistTable(display.checklist_items));
+  }
+
   if (display.next_step) {
     const next = document.createElement("p");
     next.className = "next-step";
@@ -654,6 +658,43 @@ function renderStructuredAnswer(card, display) {
   }
 
   card.appendChild(answer);
+}
+
+function renderChecklistTable(items) {
+  const section = document.createElement("section");
+  section.className = "checklist-table-section";
+  const heading = document.createElement("p");
+  heading.innerHTML = "<strong>Disclosure checklist</strong>";
+  const wrap = document.createElement("div");
+  wrap.className = "table-wrap";
+  const table = document.createElement("table");
+  table.className = "evidence-table checklist-table";
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Disclosure item</th>
+        <th>Rule</th>
+        <th>Note</th>
+      </tr>
+    </thead>
+  `;
+  const tbody = document.createElement("tbody");
+  items.forEach((item) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td><span class="check-status">${escapeHtml(cleanDisplayText(item.status || ""))}</span></td>
+      <td>${escapeHtml(cleanDisplayText(item.item || ""))}</td>
+      <td>${escapeHtml(cleanDisplayText(item.rule || ""))}</td>
+      <td>${escapeHtml(cleanDisplayText(item.note || ""))}</td>
+    `;
+    tbody.appendChild(row);
+  });
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  section.appendChild(heading);
+  section.appendChild(wrap);
+  return section;
 }
 
 function renderRuleCitations(citations, display = {}) {

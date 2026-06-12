@@ -108,6 +108,65 @@ class ChatContextTest(unittest.TestCase):
             manifest = service.store.manifest(payload["session_id"])
             self.assertEqual(manifest["uploads"][0]["ingestion"]["status"], "indexed")
 
+    def test_disclosure_completeness_engine_reviews_uploaded_document(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            llm = CapturingLlm()
+            service = ReportingChatService(
+                SessionStore(root / "sessions"),
+                StubKnowledge(),
+                llm,
+            )
+            draft = (
+                "Revenue recognition policy: The company recognizes revenue when control transfers. "
+                "Revenue is disaggregated by product line. Deferred revenue is a contract liability."
+            ).encode("utf-8")
+
+            payload = service.handle_message(
+                None,
+                "Are all the correct disclosures included?",
+                [("revenue_footnote.txt", draft)],
+            )
+
+            self.assertEqual(payload["provider"], "deterministic-tool")
+            self.assertEqual(payload["model"], "disclosure-completeness")
+            self.assertEqual(payload["selected_skill"]["id"], "disclosure_checklist")
+            self.assertEqual(payload["disclosure_review"]["topic_id"], "revenue")
+            self.assertIn("checklist_items", payload["display"])
+            self.assertEqual(len(payload["artifacts"]), 1)
+            self.assertEqual(llm.calls, [])
+
+            statuses = {
+                item["item_id"]: item["status"]
+                for item in payload["disclosure_review"]["findings"]
+            }
+            self.assertEqual(statuses["revenue_policy"], "included")
+            self.assertEqual(statuses["contract_balances"], "included")
+            self.assertIn(statuses["performance_obligations"], {"missing", "incomplete"})
+
+    def test_disclosure_completeness_uses_prior_session_uploads(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            service = ReportingChatService(
+                SessionStore(root / "sessions"),
+                StubKnowledge(),
+                CapturingLlm(),
+            )
+            upload = service.store_uploads(
+                None,
+                [("cash_flow_note.txt", b"Operating activities, investing activities, and financing activities are presented.")],
+            )
+
+            payload = service.handle_message(
+                upload["session_id"],
+                "Are any required cash flow disclosures missing?",
+            )
+
+            self.assertEqual(payload["provider"], "deterministic-tool")
+            self.assertEqual(payload["disclosure_review"]["topic_id"], "cash_flow")
+            self.assertEqual(payload["uploaded_files"], [])
+            self.assertGreaterEqual(payload["disclosure_review"]["counts"]["missing"], 1)
+
     def test_amortization_request_asks_for_principal_and_rate(self) -> None:
         with tempfile.TemporaryDirectory() as directory, patch.dict("os.environ", {"OPENAI_API_KEY": ""}, clear=False):
             service = self._service(Path(directory))

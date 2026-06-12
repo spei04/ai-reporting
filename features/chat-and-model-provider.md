@@ -34,6 +34,8 @@ The chat context is assembled as a layered cache for a vertical reporting agent:
 - Keeps provider/model metadata in session message history.
 - Includes `selected_skill_spec` metadata for categorized reporting workflows so downstream clients can inspect which L2 playbook was used.
 - Returns both `answer` for concise UI display and `raw_answer` for full model output, which Slack uses.
+- Runs the deterministic disclosure completeness engine for questions asking whether uploaded disclosures are complete, correct, included, or missing.
+- Disclosure completeness responses include `display.checklist_items`, `disclosure_review`, and a downloadable JSON artifact.
 - Adds a compact support state to reporting answers:
   - `Source backed`
   - `Partially supported`
@@ -46,3 +48,13 @@ The chat context is assembled as a layered cache for a vertical reporting agent:
 If the backend cannot categorize a query into a reporting skill, it still calls the GPT model normally with no `selected_reporting_skill` context.
 
 Uncategorized responses also avoid showing retrieved rule-context sections unless a reporting workflow explicitly requires them.
+
+## Deterministic Disclosure Review
+
+Disclosure completeness review does not ask GPT to guess whether a document is complete. The backend:
+
+1. Reads current and prior session uploads.
+2. Selects the closest configured disclosure checklist.
+3. Matches uploaded text against required checklist items.
+4. Returns item statuses: `included`, `missing`, `incomplete`, or `needs_facts`.
+5. Saves a review JSON artifact under the session.

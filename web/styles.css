@@ -853,6 +853,29 @@ textarea {
   padding: 6px 8px;
 }
 
+.checklist-table-section {
+  display: grid;
+  gap: 8px;
+}
+
+.checklist-table-section p {
+  margin: 0;
+}
+
+.checklist-table {
+  min-width: 720px;
+}
+
+.check-status {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 760;
+  padding: 4px 7px;
+}
+
 .next-step {
   background: var(--surface-muted);
   border: 1px solid var(--border);
