@@ -73,6 +73,26 @@ class SlackIntegrationTest(unittest.TestCase):
         self.assertEqual(self.chat.calls[0]["session_id"], "slack_T123_C456_U789")
         self.assertTrue((self.root / "sessions" / "slack_T123_C456_U789").exists())
 
+    def test_slash_command_returns_answer_synchronously_on_vercel(self):
+        os.environ["SLACK_ALLOW_UNSIGNED_DEV"] = "true"
+        os.environ["VERCEL"] = "1"
+        body = urlencode(
+            {
+                "team_id": "T123",
+                "channel_id": "C456",
+                "user_id": "U789",
+                "text": "What does ASC 230 require?",
+                "response_url": "https://hooks.slack.test/response",
+            }
+        ).encode("utf-8")
+
+        payload, status = self.integration.handle_slash_command(body, {})
+
+        self.assertEqual(status, 200)
+        self.assertIn("ASC 230", payload["text"])
+        self.assertNotIn("Working on it", payload["text"])
+        self.assertEqual(len(self.chat.calls), 1)
+
     def test_event_url_verification(self):
         os.environ["SLACK_ALLOW_UNSIGNED_DEV"] = "true"
         body = b'{"type":"url_verification","challenge":"abc123"}'

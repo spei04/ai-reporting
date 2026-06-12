@@ -152,6 +152,9 @@ class SlackIntegration:
         response_url = fields.get("response_url", "")
 
         if response_url:
+            if self._should_answer_synchronously():
+                answer = self.answer_for_slack(context, question)
+                return {"response_type": "ephemeral", "text": answer}, 200
             self._run_background_answer(context, question, response_url=response_url)
             return {
                 "response_type": "ephemeral",
@@ -231,6 +234,12 @@ class SlackIntegration:
         if configured:
             return configured
         return f"{public_base_url.rstrip('/')}/api/slack/oauth/callback"
+
+    def _should_answer_synchronously(self) -> bool:
+        configured = os.environ.get("SLACK_SYNC_RESPONSES", "").strip().lower()
+        if configured:
+            return configured in {"1", "true", "yes", "on"}
+        return os.environ.get("VERCEL", "").strip() == "1"
 
     def _run_background_answer(
         self,
