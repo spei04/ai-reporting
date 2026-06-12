@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-reporting"
+version = "0.1.0"
+description = "Deterministic cash flow generation with source evidence for reporting teams."
+requires-python = ">=3.11"
+dependencies = [
+  "openpyxl>=3.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+]
+
+[project.scripts]
+ai-reporting = "ai_reporting.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

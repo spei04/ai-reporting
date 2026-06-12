@@ -1,0 +1,32 @@
+# Session Files And Artifacts
+
+## Purpose
+
+Let users upload supporting files, preserve session context, and download generated outputs.
+
+## Current Features
+
+- Files can be attached to chat messages.
+- Files can be uploaded directly from the sidebar upload panel.
+- Supported file types:
+  - `.xlsx`
+  - `.csv`
+  - `.docx`
+  - `.pdf`
+  - `.txt`
+- Uploaded files are stored under `data/sessions/{session_id}`.
+- Uploaded files are summarized and indexed into private knowledge context.
+- Uploaded files return ingestion status: `indexed`, `partial`, or `failed`.
+- Generated artifacts are stored under the same session.
+- The file library exposes:
+  - uploaded files
+  - generated outputs
+  - shared ASC/SEC rules
+- Artifact cards can be rendered directly in assistant responses.
+
+## Current Output Types
+
+- SCF workbook.
+- SCF evidence JSON.
+- Mapping review JSON.
+- Normalized support JSON.

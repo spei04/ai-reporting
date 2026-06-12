@@ -1,0 +1,31 @@
+{
+  "functions": {
+    "api/index.py": {
+      "includeFiles": [
+        "config/**",
+        "data/reporting_knowledge.db",
+        "src/**"
+      ],
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/web/index.html"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/slack/:path*",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/data/:path*",
+      "destination": "/api/index.py"
+    }
+  ]
+}

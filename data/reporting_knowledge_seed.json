@@ -1,0 +1,32 @@
+[
+  {
+    "source_type": "ASC",
+    "citation": "ASC 230",
+    "title": "ASC 230 - Statement of Cash Flows",
+    "text": "Statement of cash flows guidance for classifying cash receipts and cash payments into operating, investing, and financing activities. Use this seed for demo retrieval and cite the full ASC source before production use."
+  },
+  {
+    "source_type": "ASC",
+    "citation": "ASC 606",
+    "title": "ASC 606 - Revenue from Contracts with Customers",
+    "text": "Revenue recognition guidance centered on identifying contracts, performance obligations, transaction price, allocation, and recognition when or as control transfers. Use this seed for demo retrieval and cite the full ASC source before production use."
+  },
+  {
+    "source_type": "ASC",
+    "citation": "ASC 842",
+    "title": "ASC 842 - Leases",
+    "text": "Lease accounting guidance for identifying lease arrangements, recognizing right-of-use assets and lease liabilities, and presenting lease-related amounts. Use this seed for demo retrieval and cite the full ASC source before production use."
+  },
+  {
+    "source_type": "SEC",
+    "citation": "Regulation S-X",
+    "title": "SEC Regulation S-X",
+    "text": "SEC financial statement presentation and form/content requirements for registrant financial statements. Use this seed for demo retrieval and cite the full SEC regulation before production use."
+  },
+  {
+    "source_type": "SEC",
+    "citation": "Regulation S-K",
+    "title": "SEC Regulation S-K",
+    "text": "SEC narrative disclosure requirements including business, risk factors, MD&A, and other non-financial-statement disclosures. Use this seed for demo retrieval and cite the full SEC regulation before production use."
+  }
+]
