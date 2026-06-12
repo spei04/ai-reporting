@@ -43,9 +43,8 @@ class ReportingRequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         if parsed.path == "/":
-            self.send_response(HTTPStatus.FOUND)
-            self.send_header("Location", "/web/")
-            self.end_headers()
+            self.path = "/web/index.html"
+            super().do_GET()
             return
         if parsed.path == "/api/parser-profile":
             profile = ParserProfile.load(DEFAULT_PARSER_PROFILE)
