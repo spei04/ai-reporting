@@ -9,6 +9,99 @@ const WORK_STEPS = [
   "Preparing evidence and download artifacts",
 ];
 
+const SKILL_AGENTS = [
+  {
+    id: "accounting_memo_draft",
+    label: "accounting memo",
+    patterns: [/accounting memo/i, /technical memo/i, /position memo/i, /memo draft/i],
+  },
+  {
+    id: "disclosure_checklist",
+    label: "disclosure checklist",
+    patterns: [/disclosure checklist/i, /correct disclosures/i, /missing disclosures/i, /disclosures? (included|missing|complete)/i],
+  },
+  {
+    id: "disclosure_draft_redline",
+    label: "disclosure redline",
+    patterns: [/(redline|revise|rewrite|edit).*(disclosure|footnote)/i, /(disclosure|footnote).*(redline|revise|rewrite|edit)/i],
+  },
+  {
+    id: "tie_out_review",
+    label: "tie-out review",
+    patterns: [/tie[- ]?out/i, /does .* tie/i, /reconcile to/i, /agrees to/i],
+  },
+  {
+    id: "variance_explanation",
+    label: "variance explanation",
+    patterns: [/variance/i, /flux/i, /fluctuation/i, /quarter over quarter/i, /year over year/i, /\bqoq\b/i, /\byoy\b/i],
+  },
+  {
+    id: "rule_to_claim_coverage",
+    label: "rule-to-claim coverage",
+    patterns: [/claim.*(support|rule|backed)/i, /(every claim|every sentence)/i, /rule support/i],
+  },
+  {
+    id: "reviewer_findings",
+    label: "reviewer findings",
+    patterns: [/review findings/i, /review notes/i, /review comments/i, /open items/i, /audit comments/i],
+  },
+  {
+    id: "financial_statement_flux_analysis",
+    label: "financial statement flux",
+    patterns: [/financial statement flux/i, /balance sheet flux/i, /income statement flux/i, /financial statement movement/i],
+  },
+  {
+    id: "close_package_review",
+    label: "close package review",
+    patterns: [/close package/i, /close binder/i, /quarter-end close/i, /month-end close/i],
+  },
+  {
+    id: "xbrl_filing_mechanics",
+    label: "XBRL filing mechanics",
+    patterns: [/xbrl/i, /ixbrl/i, /edgar/i, /filing mechanics/i, /cover page/i, /exhibit/i],
+  },
+  {
+    id: "controls_evidence_review",
+    label: "controls evidence",
+    patterns: [/sox/i, /control evidence/i, /reviewer signoff/i, /control owner/i],
+  },
+  {
+    id: "contract_accounting",
+    label: "contract accounting",
+    patterns: [/contract accounting/i, /contract/i, /booking/i, /asc 606/i, /lease contract/i],
+  },
+  {
+    id: "filing_draft",
+    label: "filing draft",
+    patterns: [/draft.*(filing|disclosure|footnote)/i, /(10-k|10-q|md&a)/i],
+  },
+  {
+    id: "rule_research",
+    label: "ASC/SEC rule research",
+    patterns: [/\basc\b/i, /\bsec\b/i, /regulation s-[xk]/i, /accounting guidance/i],
+  },
+  {
+    id: "source_trace_evidence",
+    label: "source trace",
+    patterns: [/source trace/i, /where did/i, /where.*number/i, /evidence/i],
+  },
+  {
+    id: "scf_generation",
+    label: "SCF",
+    patterns: [/\bscf\b/i, /cash flows?/i, /statement of cash flows/i],
+  },
+  {
+    id: "schedule_generation",
+    label: "schedule generation",
+    patterns: [/schedule/i, /rollforward/i, /depreciation/i, /lease schedule/i, /debt schedule/i],
+  },
+  {
+    id: "source_file_parsing",
+    label: "source file parsing",
+    patterns: [/parse/i, /uploaded workbook/i, /support file/i, /template/i],
+  },
+];
+
 let state = {
   sessionId: null,
   attachments: [],
@@ -479,6 +572,66 @@ function shouldGenerateScf(text, files) {
   return hasWorkbook && asksForCashFlow;
 }
 
+function predictedSkillAgent(text, files = []) {
+  const prompt = String(text || "");
+  for (const agent of SKILL_AGENTS) {
+    if (agent.patterns.some((pattern) => pattern.test(prompt))) return agent;
+  }
+  if (files.length) {
+    return { id: "source_file_parsing", label: "source file parsing" };
+  }
+  return null;
+}
+
+function agentFromPayload(payload, fallback = null) {
+  const selected = payload?.selected_skill || {};
+  if (!selected.id && !selected.name) return fallback;
+  const existing = SKILL_AGENTS.find((agent) => agent.id === selected.id);
+  return {
+    id: selected.id || existing?.id || fallback?.id || "reporting",
+    label: existing?.label || agentLabelFromName(selected.name) || fallback?.label || "reporting",
+  };
+}
+
+function agentLabelFromName(name) {
+  return String(name || "")
+    .replace(/&/g, "and")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function agentWorkingText(agent) {
+  if (!agent) return "Reviewing your reporting task.";
+  return `Calling ${agent.label} agent for your task.`;
+}
+
+function createAgentStatus(agent) {
+  const section = document.createElement("section");
+  section.className = "agent-status";
+  section.setAttribute("aria-live", "polite");
+  section.innerHTML = `
+    <div class="walking-robot" aria-hidden="true">
+      <span class="robot-antenna"></span>
+      <span class="robot-head"><span></span><span></span></span>
+      <span class="robot-body"></span>
+      <span class="robot-leg left"></span>
+      <span class="robot-leg right"></span>
+    </div>
+    <div>
+      <strong>${escapeHtml(agentWorkingText(agent))}</strong>
+      <span>Reading the right reporting playbook and session context.</span>
+    </div>
+  `;
+  return section;
+}
+
+function updateAgentStatus(status, agent) {
+  if (!status || !agent) return;
+  const strong = status.querySelector("strong");
+  if (strong) strong.textContent = agentWorkingText(agent);
+}
+
 async function handleScfGeneration(text, files, assistant) {
   assistant.card.innerHTML = "";
   assistant.card.appendChild(paragraph("I will generate the SCF using the uploaded support workbook and keep the source evidence attached to the output."));
@@ -552,6 +705,9 @@ async function handleScfGeneration(text, files, assistant) {
 
 async function handleMockResponse(text, files, assistant) {
   assistant.card.innerHTML = "";
+  const predictedAgent = predictedSkillAgent(text, files);
+  const agentStatus = predictedAgent ? createAgentStatus(predictedAgent) : null;
+  if (agentStatus) assistant.card.appendChild(agentStatus);
   const progress = createProgressList(["Loading session context", "Retrieving ASC/SEC guidance", "Asking reporting assistant"]);
   assistant.card.appendChild(progress.element);
 
@@ -582,6 +738,7 @@ async function handleMockResponse(text, files, assistant) {
     setStep(progress, 2, "active");
     await sleep(180);
     setStep(progress, 2, "done");
+    updateAgentStatus(agentStatus, agentFromPayload(payload, predictedAgent));
     const display = payload.display || { summary: payload.answer || "No response returned." };
     renderStructuredAnswer(assistant.card, display);
     if (Array.isArray(payload.citations) && payload.citations.length) {

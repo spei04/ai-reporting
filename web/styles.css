@@ -698,6 +698,148 @@ textarea {
   margin: 12px 0;
 }
 
+.agent-status {
+  align-items: center;
+  background: linear-gradient(135deg, var(--surface-muted), rgba(30, 111, 115, 0.08));
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 44px 1fr;
+  margin-bottom: 12px;
+  min-height: 58px;
+  overflow: hidden;
+  padding: 10px 12px;
+}
+
+.agent-status strong {
+  color: var(--text);
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.agent-status span {
+  color: var(--muted);
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.walking-robot {
+  animation: robot-walk 1.45s ease-in-out infinite;
+  height: 42px;
+  position: relative;
+  width: 38px;
+}
+
+.robot-antenna {
+  background: var(--accent);
+  border-radius: 999px;
+  height: 8px;
+  left: 18px;
+  position: absolute;
+  top: 0;
+  width: 2px;
+}
+
+.robot-antenna::after {
+  background: var(--warning);
+  border-radius: 999px;
+  content: "";
+  height: 5px;
+  left: -2px;
+  position: absolute;
+  top: -3px;
+  width: 5px;
+}
+
+.robot-head {
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 7px;
+  display: flex;
+  gap: 6px;
+  height: 18px;
+  justify-content: center;
+  left: 7px;
+  position: absolute;
+  top: 7px;
+  width: 24px;
+}
+
+.robot-head span {
+  animation: robot-blink 2.8s steps(1, end) infinite;
+  background: var(--accent-strong);
+  border-radius: 999px;
+  display: block;
+  height: 4px;
+  width: 4px;
+}
+
+.robot-body {
+  background: var(--accent-soft);
+  border: 1px solid rgba(30, 111, 115, 0.28);
+  border-radius: 6px;
+  height: 15px;
+  left: 10px;
+  position: absolute;
+  top: 25px;
+  width: 18px;
+}
+
+.robot-leg {
+  animation: robot-step 0.72s ease-in-out infinite;
+  background: var(--accent-strong);
+  border-radius: 999px;
+  bottom: 0;
+  height: 9px;
+  position: absolute;
+  transform-origin: top center;
+  width: 3px;
+}
+
+.robot-leg.left {
+  left: 13px;
+}
+
+.robot-leg.right {
+  animation-delay: -0.36s;
+  left: 22px;
+}
+
+@keyframes robot-walk {
+  0%,
+  100% {
+    transform: translateX(-2px) translateY(0);
+  }
+  50% {
+    transform: translateX(4px) translateY(-2px);
+  }
+}
+
+@keyframes robot-step {
+  0%,
+  100% {
+    transform: rotate(-16deg);
+  }
+  50% {
+    transform: rotate(18deg);
+  }
+}
+
+@keyframes robot-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  94% {
+    transform: scaleY(0.2);
+  }
+}
+
 .progress-step {
   align-items: center;
   color: var(--muted);
@@ -1168,6 +1310,14 @@ textarea {
   overflow: hidden;
   position: absolute;
   width: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .walking-robot,
+  .robot-head span,
+  .robot-leg {
+    animation: none;
+  }
 }
 
 @media (max-width: 720px) {
