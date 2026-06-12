@@ -91,6 +91,39 @@ SKILLS: tuple[ReportingSkill, ...] = (
         required_when="The user asks where a reported value came from or whether it is supported.",
     ),
     ReportingSkill(
+        id="tie_out_review",
+        name="Tie-Out Review",
+        purpose="Check whether a filing, disclosure, schedule, or generated output ties to source financial statements and support.",
+        instruction=(
+            "Compare reported amounts to source support, identify tie-out breaks, and separate mechanical differences "
+            "from judgmental review comments."
+        ),
+        keywords=("tie-out", "tie out", "ties to", "does this tie", "agrees to", "reconcile to", "reconciliation"),
+        required_when="The user asks whether numbers or disclosures agree to source financials, schedules, or workpapers.",
+    ),
+    ReportingSkill(
+        id="variance_explanation",
+        name="Variance Explanation",
+        purpose="Explain period-over-period, budget-to-actual, or forecast-to-actual movements using uploaded support.",
+        instruction=(
+            "Identify the comparison basis, quantify the movement, explain drivers from source support, and flag "
+            "unsupported explanations."
+        ),
+        keywords=("variance", "flux", "fluctuation", "quarter over quarter", "year over year", "qoq", "yoy", "budget to actual"),
+        required_when="The user asks why balances, activity, KPIs, or disclosures changed between periods or against budget.",
+    ),
+    ReportingSkill(
+        id="rule_to_claim_coverage",
+        name="Rule-to-Claim Coverage",
+        purpose="Check whether each claim, sentence, number, or disclosure assertion has source and rule support.",
+        instruction=(
+            "Break the text into reviewable claims, map each claim to source support and rule support, and identify "
+            "unsupported or weakly supported claims."
+        ),
+        keywords=("claim support", "rule support", "supported by rules", "backed by rules", "coverage", "every claim", "every sentence"),
+        required_when="The user asks whether disclosure statements or filing claims are backed by rules and source evidence.",
+    ),
+    ReportingSkill(
         id="rule_research",
         name="ASC/SEC Rule Research",
         purpose="Answer accounting and SEC rule questions using the shared ASC/SEC knowledge base.",
@@ -135,6 +168,17 @@ SKILLS: tuple[ReportingSkill, ...] = (
         required_when="The user asks what disclosures are required or what support should be prepared.",
     ),
     ReportingSkill(
+        id="disclosure_draft_redline",
+        name="Disclosure Draft Redline",
+        purpose="Rewrite or redline disclosure language while preserving source-backed facts and rule support.",
+        instruction=(
+            "Improve clarity and filing style without introducing unsupported facts. Separate revised text from "
+            "review notes and source/rule support."
+        ),
+        keywords=("redline", "rewrite disclosure", "revise disclosure", "edit disclosure", "markup", "improve this disclosure"),
+        required_when="The user asks to edit, redline, or rewrite disclosure language.",
+    ),
+    ReportingSkill(
         id="contract_accounting",
         name="Contract Accounting",
         purpose="Analyze contracts and draft accounting booking or memo support.",
@@ -146,6 +190,17 @@ SKILLS: tuple[ReportingSkill, ...] = (
         required_when="The user asks for contract accounting analysis, booking treatment, or a memo.",
     ),
     ReportingSkill(
+        id="accounting_memo_draft",
+        name="Accounting Memo Draft",
+        purpose="Draft accounting memos from transaction facts, company policy, source support, and ASC/SEC guidance.",
+        instruction=(
+            "Structure the memo with facts, issue, authoritative guidance, analysis, conclusion, entries or impacts, "
+            "and open questions. Do not assume missing facts."
+        ),
+        keywords=("accounting memo", "technical memo", "position memo", "memo draft", "accounting position", "technical accounting"),
+        required_when="The user asks to draft a technical accounting memo or accounting position document.",
+    ),
+    ReportingSkill(
         id="review_validation",
         name="Review & Validation",
         purpose="Check generated outputs for tie-outs, completeness, missing support, and rule coverage.",
@@ -155,6 +210,61 @@ SKILLS: tuple[ReportingSkill, ...] = (
         ),
         keywords=("review", "validate", "tie-out", "tie out", "check", "errors", "missing support", "completeness"),
         required_when="The user asks whether generated reporting output is correct, complete, or review-ready.",
+    ),
+    ReportingSkill(
+        id="reviewer_findings",
+        name="Reviewer Findings",
+        purpose="Produce audit-style review notes with severity, owner, source location, and recommended fix.",
+        instruction=(
+            "Lead with findings, group by severity, cite source locations, identify owners when clear, and recommend "
+            "the smallest practical fix."
+        ),
+        keywords=("review notes", "review comments", "findings", "review findings", "audit comments", "open items", "review points"),
+        required_when="The user wants reviewer-style findings or open items from a document, schedule, or generated output.",
+    ),
+    ReportingSkill(
+        id="financial_statement_flux_analysis",
+        name="Financial Statement Flux Analysis",
+        purpose="Analyze balance sheet, income statement, or cash-flow movements and identify likely disclosure implications.",
+        instruction=(
+            "Use uploaded financial statements or support to identify material movements, drivers, and likely MD&A or "
+            "footnote implications."
+        ),
+        keywords=("financial statement flux", "fs flux", "balance sheet flux", "income statement flux", "cash flow flux", "financial statement movement"),
+        required_when="The user asks for financial statement movement analysis or disclosure implications.",
+    ),
+    ReportingSkill(
+        id="close_package_review",
+        name="Close Package Review",
+        purpose="Review a reporting close package for missing schedules, stale support, broken links, and sign-off gaps.",
+        instruction=(
+            "Inventory the package, identify missing or stale support, check sign-off/readiness indicators, and return "
+            "practical close review findings."
+        ),
+        keywords=("close package", "close binder", "month-end close", "quarter-end close", "close review", "support package"),
+        required_when="The user asks whether a reporting close package is complete or ready for review.",
+    ),
+    ReportingSkill(
+        id="xbrl_filing_mechanics",
+        name="XBRL & Filing Mechanics",
+        purpose="Handle SEC filing mechanics such as form requirements, exhibit checks, cover-page items, and XBRL considerations.",
+        instruction=(
+            "Focus on filing mechanics, required exhibits, form-specific checks, tagging considerations, and operational "
+            "filing readiness."
+        ),
+        keywords=("xbrl", "ixbrl", "tagging", "edgar", "cover page", "exhibit", "filing mechanics", "form 10-k", "form 10-q"),
+        required_when="The user asks about SEC filing mechanics, XBRL tagging, exhibits, or form readiness.",
+    ),
+    ReportingSkill(
+        id="controls_evidence_review",
+        name="Controls Evidence Review",
+        purpose="Review SOX/control evidence for completeness, preparer/reviewer signoff, timing, and support quality.",
+        instruction=(
+            "Assess whether the evidence demonstrates control operation, includes preparer/reviewer attributes, and "
+            "supports the control objective."
+        ),
+        keywords=("sox", "control evidence", "controls", "control review", "preparer", "reviewer signoff", "sign-off", "control owner"),
+        required_when="The user asks whether control evidence is complete, sufficient, or review-ready.",
     ),
 )
 
@@ -178,9 +288,31 @@ class SkillRouter:
                 "filing" in text or "disclosure" in text or "footnote" in text
             ):
                 score += 2
+            if skill.id == "accounting_memo_draft" and "memo" in text and (
+                "accounting" in text or "technical" in text or "position" in text
+            ):
+                score += 3
+            if skill.id == "disclosure_draft_redline" and any(term in text for term in (" redline", " revise", " rewrite", " edit")) and (
+                "disclosure" in text or "footnote" in text
+            ):
+                score += 3
             if skill.id == "disclosure_checklist" and (" disclosure" in text or " disclosures" in text) and any(
                 term in text for term in (" correct", " included", " complete", " completeness", " missing")
             ):
+                score += 3
+            if skill.id == "tie_out_review" and (" tie" in text or " reconcile" in text or " agrees" in text):
+                score += 2
+            if skill.id == "rule_to_claim_coverage" and (" claim" in text or " sentence" in text) and (
+                "support" in text or "rule" in text or "backed" in text
+            ):
+                score += 3
+            if skill.id == "reviewer_findings" and any(
+                term in text for term in (" finding", " findings", " review note", " review notes", " review comment")
+            ):
+                score += 3
+            if skill.id == "financial_statement_flux_analysis" and (
+                "financial statement" in text or "balance sheet" in text or "income statement" in text or "cash flow" in text
+            ) and (" flux" in text or " movement" in text):
                 score += 3
             if score > best_score:
                 best_skill = skill

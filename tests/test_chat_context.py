@@ -225,6 +225,61 @@ class ChatContextTest(unittest.TestCase):
         self.assertIn("ASC/SEC Rule Research Skill", context["selected_skill_spec"]["content"])
         self.assertIn("skill_routing", context)
 
+    def test_new_l2_skill_specs_load_on_demand(self) -> None:
+        cases = [
+            ("Does this disclosure tie out to the financial statements?", "tie_out_review", "Tie-Out Review Skill"),
+            ("Explain the quarter over quarter revenue variance.", "variance_explanation", "Variance Explanation Skill"),
+            ("Is every claim supported by rules?", "rule_to_claim_coverage", "Rule-to-Claim Coverage Skill"),
+            ("Redline this disclosure draft.", "disclosure_draft_redline", "Disclosure Draft Redline Skill"),
+            ("Draft an accounting memo for this transaction.", "accounting_memo_draft", "Accounting Memo Draft Skill"),
+            ("Create reviewer findings for this close package.", "reviewer_findings", "Reviewer Findings Skill"),
+            ("Prepare a financial statement flux analysis.", "financial_statement_flux_analysis", "Financial Statement Flux Analysis Skill"),
+            ("Review this quarter-end close package.", "close_package_review", "Close Package Review Skill"),
+            ("What XBRL filing mechanics should we check?", "xbrl_filing_mechanics", "XBRL & Filing Mechanics Skill"),
+            ("Review this SOX control evidence.", "controls_evidence_review", "Controls Evidence Review Skill"),
+        ]
+        for message, expected_skill, expected_heading in cases:
+            with self.subTest(skill=expected_skill), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                llm = CapturingLlm()
+                service = ReportingChatService(SessionStore(root / "sessions"), StubKnowledge(), llm)
+
+                payload = service.handle_message(None, message)
+
+                self.assertEqual(payload["selected_skill"]["id"], expected_skill)
+                self.assertEqual(payload["selected_skill_spec"]["id"], expected_skill)
+                context = llm.calls[0]["context_pack"]
+                self.assertEqual(context["selected_skill_spec"]["id"], expected_skill)
+                self.assertIn(expected_heading, context["selected_skill_spec"]["content"])
+
+    def test_uploaded_files_remain_l3_session_context_for_l2_skills(self) -> None:
+        user_chunk = RuleChunk(
+            chunk_id="user_1",
+            source="USER",
+            citation="uploaded_support",
+            title="support.txt",
+            text="The uploaded support says revenue increased because enterprise renewals expanded.",
+            path="/tmp/support.txt",
+            score=8,
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            llm = CapturingLlm()
+            knowledge = StubKnowledge(user_chunks=[user_chunk])
+            service = ReportingChatService(SessionStore(root / "sessions"), knowledge, llm)
+            upload = service.store_uploads(
+                None,
+                [("support.txt", b"Revenue increased because enterprise renewals expanded.")],
+            )
+
+            payload = service.handle_message(upload["session_id"], "Explain the quarter over quarter revenue variance.")
+
+        self.assertEqual(payload["selected_skill"]["id"], "variance_explanation")
+        context = llm.calls[0]["context_pack"]
+        self.assertEqual(context["selected_skill_spec"]["id"], "variance_explanation")
+        self.assertEqual(context["retrieved_user_context"][0]["source"], "USER")
+        self.assertIn("support.txt", context["session_context"]["uploads"][0]["filename"])
+
     def test_uncategorized_query_calls_llm_without_skill_context(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

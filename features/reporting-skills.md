@@ -19,11 +19,21 @@ The skills now follow a vertical-agent cache hierarchy:
 | SCF Generation | Generate statement-of-cash-flows outputs from support data. |
 | Schedule Generation | Generate reporting workpaper schedules such as debt, lease, depreciation, and rollforward support. |
 | Source Trace & Evidence | Explain where values came from and connect outputs to source support. |
+| Tie-Out Review | Check whether filings, disclosures, schedules, or outputs tie to source support. |
+| Variance Explanation | Explain QoQ, YoY, budget-to-actual, or forecast-to-actual movements. |
+| Rule-to-Claim Coverage | Check whether claims and disclosure assertions have source and rule support. |
 | ASC/SEC Rule Research | Answer rule-backed accounting and SEC questions. |
 | Filing Draft | Draft SEC filing/disclosure language from source support and rules. |
 | Disclosure Checklist | Identify required disclosures, support needs, and open reporting questions. |
+| Disclosure Draft Redline | Rewrite or redline disclosure language while preserving source-backed facts. |
 | Contract Accounting | Analyze contracts for accounting treatment and memo support. |
+| Accounting Memo Draft | Draft technical accounting memos from facts, support, policy, and rules. |
 | Review & Validation | Check outputs for tie-outs, missing support, completeness, and rule coverage. |
+| Reviewer Findings | Produce audit-style review notes with severity, owner, source location, and recommended fix. |
+| Financial Statement Flux Analysis | Analyze financial statement movements and likely disclosure implications. |
+| Close Package Review | Review close packages for missing schedules, stale support, broken links, and sign-off gaps. |
+| XBRL & Filing Mechanics | Handle SEC filing mechanics, exhibits, cover-page items, and XBRL considerations. |
+| Controls Evidence Review | Review SOX/control evidence for completeness and support quality. |
 
 ## Routing Behavior
 
@@ -46,11 +56,21 @@ The current curated specs are:
 | `config/skills/scf_generation.md` | Generate SCF summary, detailed bridge, and evidence links. |
 | `config/skills/schedule_generation.md` | Generate auditable reporting schedules only when needed. |
 | `config/skills/source_trace_evidence.md` | Explain output values from source support and rules. |
+| `config/skills/tie_out_review.md` | Check whether outputs tie to source support. |
+| `config/skills/variance_explanation.md` | Explain period-over-period or budget movements. |
+| `config/skills/rule_to_claim_coverage.md` | Map claims to source evidence and rule support. |
 | `config/skills/rule_research.md` | Answer ASC/SEC questions with retrieved rule support. |
 | `config/skills/filing_draft.md` | Draft SEC filing language from source support and rules. |
 | `config/skills/disclosure_checklist.md` | Build practical disclosure support checklists. |
+| `config/skills/disclosure_draft_redline.md` | Redline disclosures without introducing unsupported facts. |
 | `config/skills/contract_accounting.md` | Analyze contract facts and missing accounting inputs. |
+| `config/skills/accounting_memo_draft.md` | Draft technical accounting memos. |
 | `config/skills/review_validation.md` | Review generated outputs for tie-outs and support gaps. |
+| `config/skills/reviewer_findings.md` | Produce severity-ranked review findings. |
+| `config/skills/financial_statement_flux_analysis.md` | Analyze financial statement movement drivers. |
+| `config/skills/close_package_review.md` | Review close package completeness and readiness. |
+| `config/skills/xbrl_filing_mechanics.md` | Check SEC filing mechanics and XBRL considerations. |
+| `config/skills/controls_evidence_review.md` | Review SOX/control evidence quality. |
 
 ## Currently Deterministic
 

@@ -12,6 +12,8 @@ The chat context is assembled as a layered cache for a vertical reporting agent:
 4. Retrieved session/company upload context.
 5. Current user question.
 
+User uploads are treated as L3 context. The backend retrieves relevant private chunks for the active session and passes them in `retrieved_user_context`; it does not place uploaded files in L1 or L2.
+
 ## Current Features
 
 - Backend endpoint: `/api/chat`.

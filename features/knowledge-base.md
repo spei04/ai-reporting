@@ -34,3 +34,5 @@ Shared ASC/SEC rules are available to every user. Uploaded company files are pri
 The knowledge base is the L3 escape hatch in the reporting agent architecture. The permanent prompt and curated skill specs should stay compact; raw ASC/SEC and user documents are retrieved only when the routed workflow needs them.
 
 The disclosure completeness checker promotes the checklist itself into a deterministic L1/L2 primitive: the checklist definitions live in config, while uploaded documents remain L3 private session material.
+
+User-uploaded files always live at L3. They are not copied into the permanent prompt or embedded into every skill spec. Instead, each request retrieves relevant private chunks for the active `session_id` and passes them into `retrieved_user_context`.

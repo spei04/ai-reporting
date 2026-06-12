@@ -24,13 +24,17 @@ from .skills import SkillRouter
 
 
 RULE_CONTEXT_SKILLS = {
+    "accounting_memo_draft",
     "contract_accounting",
+    "disclosure_draft_redline",
     "disclosure_checklist",
     "filing_draft",
+    "rule_to_claim_coverage",
     "review_validation",
     "rule_research",
     "scf_generation",
     "source_trace_evidence",
+    "xbrl_filing_mechanics",
 }
 
 
@@ -164,13 +168,17 @@ class ReportingChatService:
         if not skill_context:
             return message
         hints = {
+            "accounting_memo_draft": "ASC accounting memo technical accounting guidance recognition measurement disclosure",
             "contract_accounting": "ASC 606 ASC 842 contract accounting revenue lease recognition",
+            "disclosure_draft_redline": "ASC SEC disclosure filing language Regulation S-K Regulation S-X",
             "disclosure_checklist": "ASC SEC disclosure requirements checklist Regulation S-K Regulation S-X",
             "filing_draft": "SEC Regulation S-X Regulation S-K financial statement disclosure MD&A footnote",
+            "rule_to_claim_coverage": "ASC SEC rule support disclosure claim source evidence Regulation S-K Regulation S-X",
             "review_validation": "ASC SEC review validation tie-out disclosure source support",
             "rule_research": "ASC SEC accounting guidance reporting rule",
             "scf_generation": "ASC 230 statement of cash flows operating investing financing activities noncash disclosures",
             "source_trace_evidence": "ASC SEC source support evidence reporting tie-out",
+            "xbrl_filing_mechanics": "SEC EDGAR XBRL inline XBRL exhibit cover page filing requirements",
         }
         skill_id = skill_context.get("id", "")
         spec_preview = ""
