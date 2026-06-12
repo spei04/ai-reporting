@@ -158,6 +158,7 @@ class ChatContextTest(unittest.TestCase):
             payload = service.handle_message(None, "What does ASC 230 require for cash flow presentation?")
 
         self.assertEqual(payload["selected_skill"]["id"], "rule_research")
+        self.assertEqual(payload["raw_answer"], "Captured model response.")
         context = llm.calls[0]["context_pack"]
         self.assertEqual(context["selected_reporting_skill"]["id"], "rule_research")
         self.assertIn("skill_routing", context)

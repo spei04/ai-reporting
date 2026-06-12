@@ -105,6 +105,7 @@ class ReportingChatService:
             "status": "answered",
             "session_id": resolved_session_id,
             "answer": display["summary"],
+            "raw_answer": llm_response.text,
             "display": display,
             "provider": llm_response.provider,
             "model": llm_response.model,

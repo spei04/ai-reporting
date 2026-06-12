@@ -20,7 +20,8 @@ class FakeChatService:
     def handle_message(self, session_id, message, uploads=None):
         self.calls.append({"session_id": session_id, "message": message, "uploads": uploads or []})
         return {
-            "answer": "ASC 230 supports cash flow statement presentation.",
+            "answer": "Short ASC 230 summary.",
+            "raw_answer": "Full ASC 230 model response with operating, investing, and financing details.",
             "citations": [{"citation": "ASC 230", "title": "Cash Flow Statements"}],
         }
 
@@ -70,6 +71,7 @@ class SlackIntegrationTest(unittest.TestCase):
 
         self.assertEqual(status, 200)
         self.assertIn("ASC 230", payload["text"])
+        self.assertIn("operating, investing, and financing details", payload["text"])
         self.assertEqual(self.chat.calls[0]["session_id"], "slack_T123_C456_U789")
         self.assertTrue((self.root / "sessions" / "slack_T123_C456_U789").exists())
 

@@ -200,7 +200,14 @@ class SlackIntegration:
         session_id = self.store.ensure_named_session(context.session_id)
         uploads = self._download_event_files(context.team_id, file_refs or [])
         payload = self.chat_service.handle_message(session_id, question, uploads)
-        answer = payload.get("answer") or payload.get("display", {}).get("summary") or "No answer returned."
+        display = payload.get("display") or {}
+        answer = (
+            payload.get("raw_answer")
+            or display.get("raw_answer")
+            or payload.get("answer")
+            or display.get("summary")
+            or "No answer returned."
+        )
         citations = payload.get("citations") or []
         if citations:
             top = citations[0]
@@ -352,4 +359,4 @@ def _first(query: dict[str, list[str]], key: str) -> str:
 
 def _slack_text(value: str) -> str:
     text = str(value or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-    return text[:2900] + "\n\nResponse shortened for Slack." if len(text) > 3000 else text
+    return text[:39000] + "\n\nResponse shortened for Slack." if len(text) > 40000 else text
