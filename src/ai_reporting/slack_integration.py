@@ -14,6 +14,7 @@ from urllib.parse import parse_qs, urlencode
 from urllib.request import Request, urlopen
 
 from .chat import ReportingChatService
+from .runtime import runtime_path
 from .session_store import SessionStore
 
 
@@ -49,7 +50,7 @@ class SlackIntegration:
         self.root = root
         self.store = store
         self.chat_service = chat_service
-        self.data_dir = root / "data" / "slack"
+        self.data_dir = runtime_path("data", "slack", root=root)
         self.installations_path = self.data_dir / "installations.json"
         self.states_path = self.data_dir / "oauth_states.json"
         self.data_dir.mkdir(parents=True, exist_ok=True)

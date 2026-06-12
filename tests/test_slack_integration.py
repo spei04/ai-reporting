@@ -82,6 +82,13 @@ class SlackIntegrationTest(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(payload["challenge"], "abc123")
 
+    def test_slack_state_uses_runtime_directory(self):
+        with tempfile.TemporaryDirectory() as runtime:
+            os.environ["AI_REPORTING_RUNTIME_DIR"] = runtime
+            integration = SlackIntegration(self.root, self.store, self.chat)
+
+            self.assertEqual(integration.data_dir, Path(runtime) / "data" / "slack")
+
     def test_context_session_id_is_sanitized(self):
         context = SlackContext(team_id="T-1", channel_id="C.2", user_id="U 3")
 
