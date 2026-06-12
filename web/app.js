@@ -526,10 +526,16 @@ function appendUserMessage(text, files) {
 function appendAssistantShell() {
   const message = createMessage("assistant");
   const card = message.querySelector(".message-card");
+  const avatar = message.querySelector(".avatar");
+  avatar?.classList.add("thinking");
   card.appendChild(paragraph("I am setting up the reporting workpaper."));
   document.getElementById("conversation").appendChild(message);
   scrollConversation();
-  return { message, card };
+  return { message, card, avatar };
+}
+
+function stopAssistantThinking(assistant) {
+  assistant?.avatar?.classList.remove("thinking");
 }
 
 function createMessage(role) {
@@ -540,7 +546,12 @@ function createMessage(role) {
   const avatar = document.createElement("div");
   avatar.className = "avatar";
   avatar.setAttribute("aria-hidden", "true");
-  avatar.textContent = role === "assistant" ? "AR" : "You";
+  if (role === "assistant") {
+    avatar.classList.add("assistant-avatar");
+    avatar.innerHTML = robotFaceMarkup();
+  } else {
+    avatar.textContent = "You";
+  }
 
   const card = document.createElement("div");
   card.className = "message-card";
@@ -606,22 +617,22 @@ function agentWorkingText(agent) {
   return `Calling ${agent.label} agent for your task.`;
 }
 
+function robotFaceMarkup() {
+  return `
+    <span class="robot-face">
+      <span class="robot-eye"></span>
+      <span class="robot-eye"></span>
+    </span>
+  `;
+}
+
 function createAgentStatus(agent) {
   const section = document.createElement("section");
   section.className = "agent-status";
   section.setAttribute("aria-live", "polite");
   section.innerHTML = `
-    <div class="walking-robot" aria-hidden="true">
-      <span class="robot-antenna"></span>
-      <span class="robot-head"><span></span><span></span></span>
-      <span class="robot-body"></span>
-      <span class="robot-leg left"></span>
-      <span class="robot-leg right"></span>
-    </div>
-    <div>
-      <strong>${escapeHtml(agentWorkingText(agent))}</strong>
-      <span>Reading the right reporting playbook and session context.</span>
-    </div>
+    <strong>${escapeHtml(agentWorkingText(agent))}</strong>
+    <span>Reading the right reporting playbook and session context.</span>
   `;
   return section;
 }
@@ -699,6 +710,7 @@ async function handleScfGeneration(text, files, assistant) {
     notice.textContent = `Generation failed: ${error.message}`;
     assistant.card.appendChild(notice);
   } finally {
+    stopAssistantThinking(assistant);
     scrollConversation();
   }
 }
@@ -759,6 +771,8 @@ async function handleMockResponse(text, files, assistant) {
     note.className = "notice";
     note.textContent = `Chat request failed: ${error.message}`;
     assistant.card.appendChild(note);
+  } finally {
+    stopAssistantThinking(assistant);
   }
   scrollConversation();
 }

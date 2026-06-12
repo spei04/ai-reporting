@@ -396,9 +396,57 @@ a {
 .brand-mark {
   border-radius: 8px;
   box-shadow: var(--shadow-soft);
-  color: var(--accent-strong);
   height: 40px;
   width: 40px;
+}
+
+.robot-face {
+  align-items: center;
+  background: linear-gradient(180deg, var(--surface), var(--surface-muted));
+  border: 1px solid rgba(30, 111, 115, 0.24);
+  border-radius: 7px;
+  display: flex;
+  gap: 6px;
+  height: 22px;
+  justify-content: center;
+  position: relative;
+  width: 25px;
+}
+
+.robot-face::before {
+  background: var(--accent);
+  border-radius: 999px;
+  content: "";
+  height: 5px;
+  left: 50%;
+  position: absolute;
+  top: -7px;
+  transform: translateX(-50%);
+  width: 2px;
+}
+
+.robot-face::after {
+  background: var(--warning);
+  border-radius: 999px;
+  content: "";
+  height: 4px;
+  left: 50%;
+  position: absolute;
+  top: -10px;
+  transform: translateX(-50%);
+  width: 4px;
+}
+
+.robot-eye {
+  background: var(--accent-strong);
+  border-radius: 999px;
+  display: block;
+  height: 4px;
+  width: 4px;
+}
+
+.assistant-avatar.thinking .robot-eye {
+  animation: robot-eye-blink 1.05s steps(1, end) infinite;
 }
 
 .brand strong,
@@ -699,17 +747,13 @@ textarea {
 }
 
 .agent-status {
-  align-items: center;
   background: linear-gradient(135deg, var(--surface-muted), rgba(30, 111, 115, 0.08));
   border: 1px solid var(--border);
   border-radius: 8px;
   display: grid;
-  gap: 12px;
-  grid-template-columns: 44px 1fr;
+  gap: 3px;
   margin-bottom: 12px;
-  min-height: 58px;
-  overflow: hidden;
-  padding: 10px 12px;
+  padding: 9px 10px;
 }
 
 .agent-status strong {
@@ -726,116 +770,13 @@ textarea {
   line-height: 1.35;
 }
 
-.walking-robot {
-  animation: robot-walk 1.45s ease-in-out infinite;
-  height: 42px;
-  position: relative;
-  width: 38px;
-}
-
-.robot-antenna {
-  background: var(--accent);
-  border-radius: 999px;
-  height: 8px;
-  left: 18px;
-  position: absolute;
-  top: 0;
-  width: 2px;
-}
-
-.robot-antenna::after {
-  background: var(--warning);
-  border-radius: 999px;
-  content: "";
-  height: 5px;
-  left: -2px;
-  position: absolute;
-  top: -3px;
-  width: 5px;
-}
-
-.robot-head {
-  align-items: center;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  border-radius: 7px;
-  display: flex;
-  gap: 6px;
-  height: 18px;
-  justify-content: center;
-  left: 7px;
-  position: absolute;
-  top: 7px;
-  width: 24px;
-}
-
-.robot-head span {
-  animation: robot-blink 2.8s steps(1, end) infinite;
-  background: var(--accent-strong);
-  border-radius: 999px;
-  display: block;
-  height: 4px;
-  width: 4px;
-}
-
-.robot-body {
-  background: var(--accent-soft);
-  border: 1px solid rgba(30, 111, 115, 0.28);
-  border-radius: 6px;
-  height: 15px;
-  left: 10px;
-  position: absolute;
-  top: 25px;
-  width: 18px;
-}
-
-.robot-leg {
-  animation: robot-step 0.72s ease-in-out infinite;
-  background: var(--accent-strong);
-  border-radius: 999px;
-  bottom: 0;
-  height: 9px;
-  position: absolute;
-  transform-origin: top center;
-  width: 3px;
-}
-
-.robot-leg.left {
-  left: 13px;
-}
-
-.robot-leg.right {
-  animation-delay: -0.36s;
-  left: 22px;
-}
-
-@keyframes robot-walk {
+@keyframes robot-eye-blink {
   0%,
-  100% {
-    transform: translateX(-2px) translateY(0);
-  }
-  50% {
-    transform: translateX(4px) translateY(-2px);
-  }
-}
-
-@keyframes robot-step {
-  0%,
-  100% {
-    transform: rotate(-16deg);
-  }
-  50% {
-    transform: rotate(18deg);
-  }
-}
-
-@keyframes robot-blink {
-  0%,
-  92%,
+  72%,
   100% {
     transform: scaleY(1);
   }
-  94% {
+  76% {
     transform: scaleY(0.2);
   }
 }
@@ -1313,9 +1254,7 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .walking-robot,
-  .robot-head span,
-  .robot-leg {
+  .assistant-avatar.thinking .robot-eye {
     animation: none;
   }
 }
