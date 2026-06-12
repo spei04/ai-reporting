@@ -17,6 +17,7 @@ from .reporting_prompt import REPORTING_SYSTEM_PROMPT
 from .response_format import format_chat_response
 from .runtime import prepare_runtime_knowledge_db, runtime_path
 from .session_store import SessionStore, StoredUpload
+from .skill_specs import SkillSpecStore
 from .skills import SkillRouter
 
 
@@ -38,11 +39,13 @@ class ReportingChatService:
         knowledge: ReportingKnowledgeBase,
         llm: ReportingLlmClient,
         skill_router: SkillRouter | None = None,
+        skill_specs: SkillSpecStore | None = None,
     ):
         self.store = store
         self.knowledge = knowledge
         self.llm = llm
         self.skill_router = skill_router or SkillRouter()
+        self.skill_specs = skill_specs or SkillSpecStore()
 
     def handle_message(
         self,
@@ -61,22 +64,30 @@ class ReportingChatService:
         if self._should_handle_amortization(resolved_session_id, message):
             return self._handle_amortization(resolved_session_id, message, stored_uploads)
 
-        rule_chunks = self.knowledge.retrieve(message, limit=5) if self._should_retrieve_rule_context(skill_route) else []
+        skill_context = skill_route.skill.to_context() if skill_route.has_skill and skill_route.skill else None
+        skill_spec = self.skill_specs.load(skill_route.skill.id) if skill_route.has_skill and skill_route.skill else None
+        retrieval_query = self._rule_retrieval_query(message, skill_context, skill_spec.to_context() if skill_spec else None)
+        rule_chunks = self.knowledge.retrieve(retrieval_query, limit=5) if self._should_retrieve_rule_context(skill_route) else []
         user_chunks = self.knowledge.retrieve_user(resolved_session_id, message, limit=5)
         context_pack = {
             "permanent_reporting_instruction": "System prompt is applied separately on every model request.",
-            "retrieved_reporting_guidance": [chunk.to_json() for chunk in rule_chunks],
-            "retrieved_user_context": [chunk.to_json() for chunk in user_chunks],
-            "session_context": session_context,
-            "user_question": message,
         }
-        if skill_route.has_skill and skill_route.skill:
-            context_pack["selected_reporting_skill"] = skill_route.skill.to_context()
+        if skill_context:
+            context_pack["selected_reporting_skill"] = skill_context
             context_pack["skill_routing"] = {
                 "confidence": skill_route.confidence,
                 "reason": skill_route.reason,
             }
-        skill_context = skill_route.skill.to_context() if skill_route.has_skill and skill_route.skill else None
+        if skill_spec:
+            context_pack["selected_skill_spec"] = skill_spec.to_context()
+        context_pack.update(
+            {
+                "retrieved_reporting_guidance": [chunk.to_json() for chunk in rule_chunks],
+                "retrieved_user_context": [chunk.to_json() for chunk in user_chunks],
+                "session_context": session_context,
+                "user_question": message,
+            }
+        )
         llm_response = self.llm.complete(REPORTING_SYSTEM_PROMPT, context_pack, message)
         citations = [chunk.to_json() for chunk in rule_chunks]
         user_context = [chunk.to_json() for chunk in user_chunks]
@@ -97,6 +108,7 @@ class ReportingChatService:
                 "retrieved_rule_context": citations,
                 "user_context": user_context,
                 "selected_skill": skill_context,
+                "selected_skill_spec": skill_spec.to_context() if skill_spec else None,
                 "support_state": support_state,
             },
         )
@@ -119,12 +131,40 @@ class ReportingChatService:
         }
         if skill_context:
             payload["selected_skill"] = skill_context
+        if skill_spec:
+            payload["selected_skill_spec"] = {
+                "id": skill_spec.skill_id,
+                "source": str(skill_spec.path),
+            }
         return payload
 
     def _should_retrieve_rule_context(self, skill_route) -> bool:
         if not skill_route.has_skill or not skill_route.skill:
             return False
         return skill_route.skill.id in RULE_CONTEXT_SKILLS
+
+    def _rule_retrieval_query(
+        self,
+        message: str,
+        skill_context: dict[str, str] | None,
+        skill_spec: dict[str, Any] | None,
+    ) -> str:
+        if not skill_context:
+            return message
+        hints = {
+            "contract_accounting": "ASC 606 ASC 842 contract accounting revenue lease recognition",
+            "disclosure_checklist": "ASC SEC disclosure requirements checklist Regulation S-K Regulation S-X",
+            "filing_draft": "SEC Regulation S-X Regulation S-K financial statement disclosure MD&A footnote",
+            "review_validation": "ASC SEC review validation tie-out disclosure source support",
+            "rule_research": "ASC SEC accounting guidance reporting rule",
+            "scf_generation": "ASC 230 statement of cash flows operating investing financing activities noncash disclosures",
+            "source_trace_evidence": "ASC SEC source support evidence reporting tie-out",
+        }
+        skill_id = skill_context.get("id", "")
+        spec_preview = ""
+        if skill_spec:
+            spec_preview = str(skill_spec.get("content", ""))[:800]
+        return " ".join(part for part in [message, hints.get(skill_id, ""), spec_preview] if part)
 
     def _should_handle_amortization(self, session_id: str, message: str) -> bool:
         if is_amortization_request(message):

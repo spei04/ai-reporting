@@ -194,6 +194,43 @@ class FirstMilestoneTest(unittest.TestCase):
             self.assertEqual(item["source_locations"], ["BS!A1", "BS!A2"])
             self.assertEqual(len(item["dependency_details"]), 2)
 
+    def test_evidence_links_include_transitive_generated_sources(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source_path = root / "support.xlsx"
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Support"
+            ws["A1"] = 100
+            wb.save(source_path)
+
+            template = CashFlowTemplate(
+                "test",
+                {
+                    "1. SCF": TemplateSheet("1. SCF", {}),
+                    "2. 26Q1 QTD": TemplateSheet(
+                        "2. 26Q1 QTD",
+                        {
+                            "B2": TemplateCell("B2", formula="=-SUM(C2:D2)"),
+                            "C2": TemplateCell("C2", formula="='Support'!A1"),
+                        },
+                    ),
+                    "2a. 2026 YTD": TemplateSheet("2a. 2026 YTD", {}),
+                },
+            )
+            engine = CashFlowEngine(source_path, template)
+            result = engine.generate(root / "out")
+
+            evidence = json.loads(result.evidence_json.read_text())
+            traced = {
+                f"{item['output_sheet']}!{item['output_cell']}": item
+                for item in evidence
+            }
+
+            item = traced["2. 26Q1 QTD!B2"]
+            self.assertEqual(item["review_status"], "Linked")
+            self.assertEqual(item["source_locations"], ["Support!A1"])
+
     def test_source_map_resolves_moved_labeled_value_cell(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "moved_value.xlsx"

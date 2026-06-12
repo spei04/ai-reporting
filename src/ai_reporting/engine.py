@@ -148,13 +148,7 @@ class CashFlowEngine:
                     self._dependency_detail(dependency)
                     for dependency in sorted(dependencies)
                 ]
-                source_locations = [
-                    self._format_source_location(detail)
-                    for detail in dependency_details
-                    if detail.get("source_type") == "source_workbook"
-                    and detail.get("actual_sheet")
-                    and detail.get("actual_cell")
-                ]
+                source_locations = self._source_locations_for_output(f"{sheet}!{cell}")
                 template_cell = self._template_cell(sheet, cell)
                 links.append(
                     EvidenceLink(
@@ -189,6 +183,34 @@ class CashFlowEngine:
             "value": self.source.value(sheet_name, cell),
             "formula": self.source.formula(sheet_name, cell),
         }
+
+    def _source_locations_for_output(self, output_key: str) -> list[str]:
+        locations: list[str] = []
+        for dependency in sorted(self.evaluator.dependencies.get(output_key, set())):
+            locations.extend(self._source_locations_for_dependency(dependency, set()))
+        return _unique_locations(locations)
+
+    def _source_locations_for_dependency(self, dependency: str, visited: set[str]) -> list[str]:
+        if dependency in visited:
+            return []
+        visited.add(dependency)
+
+        sheet_name, cell = dependency.split("!", 1)
+        template_cell = self._template_cell(sheet_name, cell)
+        if template_cell is None:
+            detail = self._dependency_detail(dependency)
+            if (
+                detail.get("source_type") == "source_workbook"
+                and detail.get("actual_sheet")
+                and detail.get("actual_cell")
+            ):
+                return [self._format_source_location(detail)]
+            return []
+
+        source_locations: list[str] = []
+        for nested_dependency in sorted(self.evaluator.dependencies.get(dependency, set())):
+            source_locations.extend(self._source_locations_for_dependency(nested_dependency, visited))
+        return source_locations
 
     def _write_workbook(
         self,
@@ -290,12 +312,7 @@ class CashFlowEngine:
 
     def _evidence_comment(self, item: EvidenceLink, row_number: int) -> str:
         template_cell = self._template_cell(item.output_sheet, item.output_cell)
-        sources = [
-            self._format_source_location(detail)
-            for detail in item.dependency_details
-            if detail.get("source_type") == "source_workbook"
-        ]
-        source_text = "\n".join(sources[:5]) or "See dependency chain in Evidence Index."
+        source_text = "\n".join(item.source_locations[:5]) or "See dependency chain in Evidence Index."
         formula_text = template_cell.formula if template_cell and template_cell.formula else "Static/template value"
         return (
             f"Evidence Index row {row_number}\n"
@@ -314,3 +331,14 @@ class CashFlowEngine:
             if actual != canonical:
                 return f"{canonical} located at {actual}"
         return canonical
+
+
+def _unique_locations(locations: list[str]) -> list[str]:
+    seen = set()
+    unique = []
+    for location in locations:
+        if location in seen:
+            continue
+        seen.add(location)
+        unique.append(location)
+    return unique

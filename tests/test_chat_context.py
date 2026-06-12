@@ -158,9 +158,12 @@ class ChatContextTest(unittest.TestCase):
             payload = service.handle_message(None, "What does ASC 230 require for cash flow presentation?")
 
         self.assertEqual(payload["selected_skill"]["id"], "rule_research")
+        self.assertEqual(payload["selected_skill_spec"]["id"], "rule_research")
         self.assertEqual(payload["raw_answer"], "Captured model response.")
         context = llm.calls[0]["context_pack"]
         self.assertEqual(context["selected_reporting_skill"]["id"], "rule_research")
+        self.assertEqual(context["selected_skill_spec"]["id"], "rule_research")
+        self.assertIn("ASC/SEC Rule Research Skill", context["selected_skill_spec"]["content"])
         self.assertIn("skill_routing", context)
 
     def test_uncategorized_query_calls_llm_without_skill_context(self) -> None:
@@ -177,6 +180,7 @@ class ChatContextTest(unittest.TestCase):
         self.assertNotIn("selected_skill", payload)
         context = llm.calls[0]["context_pack"]
         self.assertNotIn("selected_reporting_skill", context)
+        self.assertNotIn("selected_skill_spec", context)
         self.assertNotIn("skill_routing", context)
 
     def test_uncategorized_query_does_not_retrieve_or_display_rule_context(self) -> None:
@@ -200,6 +204,28 @@ class ChatContextTest(unittest.TestCase):
         self.assertEqual(payload["citations"], [])
         self.assertNotIn("support_status", payload["display"])
         self.assertEqual(llm.calls[0]["context_pack"]["retrieved_reporting_guidance"], [])
+
+    def test_rule_retrieval_query_is_skill_aware(self) -> None:
+        rule = RuleChunk(
+            chunk_id="rule_1",
+            source="ASC",
+            citation="ASC 230",
+            title="ASC 230 - Cash Flow Statements",
+            text="Statement of cash flows guidance.",
+            path="/tmp/asc230.pdf",
+            score=10,
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            llm = CapturingLlm()
+            knowledge = StubKnowledge(rule_chunks=[rule])
+            service = ReportingChatService(SessionStore(root / "sessions"), knowledge, llm)
+            service.handle_message(None, "Draft my SCF from this support workbook")
+
+        query, limit = knowledge.retrieve_calls[0]
+        self.assertEqual(limit, 5)
+        self.assertIn("ASC 230", query)
+        self.assertIn("SCF Generation Skill", query)
 
     def test_reporting_query_without_sources_returns_no_source_state_without_download(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
