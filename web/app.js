@@ -1,4 +1,13 @@
-const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8001" : "";
+const LOCAL_API_ORIGIN = "http://127.0.0.1:8001";
+const API_BASE = resolveApiBase();
+
+function resolveApiBase() {
+  const { protocol, hostname, port } = window.location;
+  const isLocalHost = hostname === "127.0.0.1" || hostname === "localhost";
+  if (protocol === "file:") return LOCAL_API_ORIGIN;
+  if (isLocalHost && port && port !== "8001") return LOCAL_API_ORIGIN;
+  return "";
+}
 
 const WORK_STEPS = [
   "Receiving uploaded workbook",
@@ -134,7 +143,7 @@ async function initSession() {
   }
   try {
     const response = await fetch(apiUrl("/api/sessions"), { method: "POST" });
-    const payload = await response.json();
+    const payload = await readJsonResponse(response);
     if (!response.ok || !payload.session_id) throw new Error(payload.message || "Unable to create session");
     state.sessionId = payload.session_id;
     localStorage.setItem("ai-reporting-session-id", state.sessionId);
@@ -206,7 +215,7 @@ async function loadLibrary() {
   content.textContent = "Loading files...";
   try {
     const response = await fetch(apiUrl(`/api/session-library?session_id=${encodeURIComponent(state.sessionId || "")}`));
-    const payload = await response.json();
+    const payload = await readJsonResponse(response);
     if (!response.ok || payload.status === "error") throw new Error(payload.message || "Unable to load file library");
     state.library = payload;
     renderLibrary();
@@ -387,7 +396,7 @@ async function uploadSessionFiles(files) {
       headers: state.sessionId ? { "X-Session-ID": state.sessionId } : {},
       body: formData,
     });
-    const payload = await response.json();
+    const payload = await readJsonResponse(response);
     if (!response.ok || payload.status === "error") {
       throw new Error(payload.message || "Upload failed");
     }
@@ -672,7 +681,7 @@ async function handleScfGeneration(text, files, assistant) {
       headers: state.sessionId ? { "X-Session-ID": state.sessionId } : {},
       body: formData,
     });
-    const payload = await response.json();
+    const payload = await readJsonResponse(response);
     if (!response.ok || payload.status === "error") {
       throw new Error(payload.message || "SCF generation failed");
     }
@@ -737,7 +746,7 @@ async function handleMockResponse(text, files, assistant) {
       headers: state.sessionId ? { "X-Session-ID": state.sessionId } : {},
       body: formData,
     });
-    const payload = await response.json();
+    const payload = await readJsonResponse(response);
     if (!response.ok || payload.status === "error") {
       throw new Error(payload.message || "Chat request failed");
     }
@@ -1350,9 +1359,26 @@ async function fetchOptionalJson(path) {
   try {
     const response = await fetch(apiUrl(path));
     if (!response.ok) return null;
-    return response.json();
+    return readJsonResponse(response);
   } catch {
     return null;
+  }
+}
+
+async function readJsonResponse(response) {
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().includes("application/json")) {
+    const body = await response.text().catch(() => "");
+    const preview = body.trim().slice(0, 40);
+    if (preview.startsWith("<!DOCTYPE") || preview.startsWith("<html")) {
+      throw new Error("The chat is connected to a static preview instead of the AI Reporting backend. Open http://127.0.0.1:8001/web/.");
+    }
+    throw new Error(`Expected a JSON response from the backend but received ${contentType || "a non-JSON response"}.`);
+  }
+  try {
+    return await response.json();
+  } catch {
+    throw new Error("The backend returned invalid JSON. Please retry the request.");
   }
 }
 
