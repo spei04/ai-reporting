@@ -73,25 +73,26 @@ class ReportingRequestHandler(SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self) -> None:
-        if self.path == "/api/sessions":
+        path = _normalized_request_path(self.path)
+        if path == "/api/sessions":
             self._handle_create_session()
             return
-        if self.path == "/api/chat":
+        if path == "/api/chat":
             self._handle_chat()
             return
-        if self.path == "/api/uploads":
+        if path == "/api/uploads":
             self._handle_session_uploads()
             return
-        if self.path in {"/slack/commands", "/api/slack/commands"}:
+        if _is_slack_route(path, "commands"):
             self._handle_slack_command()
             return
-        if self.path in {"/slack/events", "/api/slack/events"}:
+        if _is_slack_route(path, "events"):
             self._handle_slack_event()
             return
-        if self.path == "/api/generate":
+        if path == "/api/generate":
             self._handle_generate()
             return
-        if self.path == "/api/mapping-override":
+        if path == "/api/mapping-override":
             self._handle_mapping_override()
             return
         self.send_error(HTTPStatus.NOT_FOUND, "Unknown endpoint")
@@ -480,6 +481,15 @@ def _public_base_url(handler: SimpleHTTPRequestHandler) -> str:
     host = handler.headers.get("Host", "127.0.0.1:8001")
     scheme = "https" if handler.headers.get("X-Forwarded-Proto") == "https" else "http"
     return f"{scheme}://{host}"
+
+
+def _normalized_request_path(path: str) -> str:
+    normalized = urlparse(path).path.rstrip("/")
+    return normalized or "/"
+
+
+def _is_slack_route(path: str, route: str) -> bool:
+    return path in {f"/slack/{route}", f"/api/slack/{route}"} or path.endswith(f"/slack/{route}") or path == f"/{route}"
 
 
 def main() -> None:

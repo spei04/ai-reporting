@@ -55,6 +55,15 @@ class DeployReadinessTest(unittest.TestCase):
         self.assertEqual(base64.b64decode(by_key["output_workbook"]["base64"]), b"xlsx bytes")
         self.assertEqual(json.loads(base64.b64decode(by_key["evidence_json"]["base64"])), [{"output_cell": "B2"}])
 
+    def test_slack_route_matching_tolerates_vercel_paths(self) -> None:
+        self.assertTrue(server._is_slack_route("/api/slack/events", "events"))
+        self.assertTrue(server._is_slack_route("/slack/events", "events"))
+        self.assertTrue(server._is_slack_route("/events", "events"))
+        self.assertTrue(server._is_slack_route("/api/index.py/slack/events", "events"))
+        self.assertTrue(server._is_slack_route("/api/slack/commands", "commands"))
+        self.assertFalse(server._is_slack_route("/api/health", "events"))
+        self.assertEqual(server._normalized_request_path("/api/slack/events?x=1"), "/api/slack/events")
+
 
 if __name__ == "__main__":
     unittest.main()
