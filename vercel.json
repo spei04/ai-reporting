@@ -1,11 +1,7 @@
 {
   "functions": {
     "api/index.py": {
-      "includeFiles": [
-        "config/**",
-        "data/reporting_knowledge.db",
-        "src/**"
-      ],
+      "includeFiles": "{config/**,data/reporting_knowledge_seed.json,src/**}",
       "maxDuration": 60,
       "memory": 1024
     }
